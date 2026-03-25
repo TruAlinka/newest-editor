@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Редактор Игры</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; gap: 20px; padding: 20px; background-color: #f4f4f9; color: #333; min-height: 100vh; box-sizing: border-box; margin: 0; }
+    .editor, .preview { flex: 1; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); overflow-y: auto; }
+    .editor-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 15px; }
+    h1, h2 { margin: 0; padding: 0; }
+    h2 { margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
+    input[type='text'], input[type='url'], textarea, select { width: 95%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; box-sizing: border-box; }
+    textarea { height: 150px; resize: vertical; font-family: monospace; }
+    .controls-group { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; margin-top: 10px; }
+    .control-item { display: flex; flex-direction: column; }
+    .control-item-row { display: flex; align-items: center; gap: 10px; }
+    input[type='color'] { width: 50px; height: 40px; border: none; padding: 0; cursor: pointer; }
+    input[type='range'] { flex-grow: 1; }
+    #generate-btn { width: 100%; padding: 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 18px; cursor: pointer; margin-top: 20px; }
+    #generate-btn:hover { background-color: #0056b3; }
+    #lang-toggle { padding: 8px 12px; background-color: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    #lang-toggle:hover { background-color: #5a6268; }
+    #output-code, #output-iframe { font-family: monospace; white-space: pre-wrap; background-color: #2d2d2d; color: #f1f1f1; height: 200px; border-radius: 4px; margin-top: 5px; resize: vertical; }
+    #preview-container { width: 100%; height: 720px; border: 1px solid #ccc; border-radius: 4px; }
+    .help-text { font-size: 14px; color: #666; margin-top: 5px; background: #f9f9f9; padding: 10px; border-radius: 4px; }
+    button.copy-btn, button.download-btn { margin-top: 8px; width: fit-content; background-color: #007bff; color: white; border: none; border-radius: 4px; padding: 5px 12px; cursor: pointer; font-size: 14px; margin-bottom: 10px; }
+    button.copy-btn:hover, button.download-btn:hover { background-color: #0056b3; }
+  </style>
+</head>
+<body>
+  <div class="editor">
+    <div class="editor-header">
+      <h1 id="editor-title">Редактор Игры</h1>
+      <button id="lang-toggle">EN</button>
+    </div>
+
+    <h2 id="section-general">1. Общие настройки</h2>
+    <label for="game-title" id="label-game-title">Название/тема игры:</label>
+    <input type="text" id="game-title" value="Интерактивная Викторина" />
+
+    <h2 id="section-appearance">2. Внешний вид</h2>
+    <div class="controls-group">
+      <div class="control-item">
+        <label for="bg-color" id="label-bg-color">Цвет фона:</label>
+        <input type="color" id="bg-color" value="#f0f8ff" />
+      </div>
+      <div class="control-item">
+        <label for="definition-bg-color" id="label-definition-bg-color">Фон блока вопроса:</label>
+        <input type="color" id="definition-bg-color" value="#ffffff" />
+      </div>
+    </div>
+
+    <div class="controls-group">
+      <div class="control-item">
+        <label for="btn-check-bg-color" id="label-btn-check-bg-color">Цвет фона "Проверить":</label>
+        <input type="color" id="btn-check-bg-color" value="#007bff" />
+      </div>
+      <div class="control-item">
+        <label for="btn-check-text-color" id="label-btn-check-text-color">Цвет текста "Проверить":</label>
+        <input type="color" id="btn-check-text-color" value="#ffffff" />
+      </div>
+    </div>
+
+    <div class="controls-group">
+      <div class="control-item">
+        <label for="btn-restart-bg-color" id="label-btn-restart-bg-color">Цвет фона "Сброс":</label>
+        <input type="color" id="btn-restart-bg-color" value="#ffc107" />
+      </div>
+      <div class="control-item">
+        <label for="btn-restart-text-color" id="label-btn-restart-text-color">Цвет текста "Сброс":</label>
+        <input type="color" id="btn-restart-text-color" value="#333333" />
+      </div>
+    </div>
+
+    <div>
+      <label for="btn-radius" id="label-btn-radius">Скругленность углов:</label>
+      <div class="control-item-row">
+        <input type="range" id="btn-radius" min="0" max="25" value="6" />
+        <span id="btn-radius-value">6px</span>
+      </div>
+    </div>
+
+    <h2 id="section-game-type">3. Тип игры</h2>
+    <label for="game-type" id="label-game-type">Выберите тип задания:</label>
+    <select id="game-type">
+      <option value="anagram">Расставить буквы</option>
+      <option value="input">Впечатать ответ</option>
+    </select>
+
+    <h2 id="section-content">4. Содержимое игры</h2>
+    <label for="game-data" id="label-game-data">Вопросы и ответы:</label>
+    <div class="help-text" id="help-text">Формат: <b>Вопрос | Ответ | Ссылка на картинку (необязательно)</b></div>
+    <textarea id="game-data">Самая большая планета Солнечной системы | Юпитер | https://i.ibb.co/L8y2hQZ/jupiter.png
+Столица Японии | Токио | https://i.ibb.co/Wc6YpQ8/tokyo.jpg
+Процесс превращения воды в пар | Испарение |</textarea>
+
+    <h2 id="section-feedback">5. Обратная связь</h2>
+    <label for="feedback-correct" id="label-feedback-correct">Текст при верном ответе:</label>
+    <input type="text" id="feedback-correct" value="Верно! Отлично!" />
+
+    <label for="feedback-incorrect" id="label-feedback-incorrect">Текст при неверном ответе:</label>
+    <input type="text" id="feedback-incorrect" value="Ошибка, попробуй еще раз." />
+
+    <label for="feedback-final" id="label-feedback-final">Текст по завершении игры:</label>
+    <input type="text" id="feedback-final" value="Игра окончена! Вы молодец!" />
+
+    <button id="generate-btn">Сгенерировать код</button>
+
+    <h2 id="section-code">6. Готовый код</h2>
+    <label for="output-iframe" id="label-output-iframe">Код для вставки (iframe):</label>
+    <button id="copy-iframe-btn" class="copy-btn">Скопировать</button>
+    <textarea id="output-iframe" readonly></textarea>
+
+    <label for="output-code" id="label-output-code">Полный HTML-код:</label>
+    <button id="copy-html-btn" class="copy-btn">Скопировать</button>
+    <button id="download-html-btn" class="download-btn">Скачать HTML</button>
+    <textarea id="output-code" readonly></textarea>
+  </div>
+
+  <div class="preview">
+    <h1 id="preview-title">Превью Игры</h1>
+    <iframe id="preview-container" title="Превью игры"></iframe>
+  </div>
+
+<script>
+const translations={ru:{editorTitle:"Редактор Игры",previewTitle:"Превью Игры",sectionGeneral:"1. Общие настройки",labelGameTitle:"Название/тема игры:",sectionAppearance:"2. Внешний вид",labelBgColor:"Цвет фона:",labelDefinitionBgColor:"Фон блока вопроса:",labelBtnCheckBgColor:'Цвет фона "Проверить":',labelBtnCheckTextColor:'Цвет текста "Проверить":',labelBtnRestartBgColor:'Цвет фона "Сброс":',labelBtnRestartTextColor:'Цвет текста "Сброс":',labelBtnRadius:"Скругленность углов:",sectionGameType:"3. Тип игры",labelGameType:"Выберите тип задания:",sectionContent:"4. Содержимое игры",labelGameData:"Вопросы и ответы:",helpText:"Формат: <b>Вопрос | Ответ | Ссылка на картинку (необязательно)</b>",sectionFeedback:"5. Обратная связь",labelFeedbackCorrect:"Текст при верном ответе:",labelFeedbackIncorrect:"Текст при неверном ответе:",labelFeedbackFinal:"Текст по завершении игры:",generateBtn:"Сгенерировать код",sectionCode:"6. Готовый код",labelOutputIframe:"Код для вставки (iframe):",labelOutputCode:"Полный HTML-код:"},en:{editorTitle:"Game Editor",previewTitle:"Game Preview",sectionGeneral:"1. General Settings",labelGameTitle:"Game Title/Theme:",sectionAppearance:"2. Appearance",labelBgColor:"Background Color:",labelDefinitionBgColor:"Question block background:",labelBtnCheckBgColor:"Check button background:",labelBtnCheckTextColor:"Check button text:",labelBtnRestartBgColor:"Restart button background:",labelBtnRestartTextColor:"Restart button text:",labelBtnRadius:"Button corner rounding:",sectionGameType:"3. Game Type",labelGameType:"Choose task type:",sectionContent:"4. Game Content",labelGameData:"Questions and Answers:",helpText:"Format: <b>Question | Answer | Image URL (optional)</b>",sectionFeedback:"5. Feedback",labelFeedbackCorrect:"Text for correct answer:",labelFeedbackIncorrect:"Text for incorrect answer:",labelFeedbackFinal:"Text for game completion:",generateBtn:"Generate Code",sectionCode:"6. Resulting Code",labelOutputIframe:"Code for embedding (iframe):",labelOutputCode:"Full HTML code:"}};let currentLang="ru";function setLanguage(e){currentLang=e;const t=translations[e];document.querySelectorAll("[id]").forEach(e=>{const a=e.id.replace(/-([a-z])/g,e=>e[1].toUpperCase());t[a]&&(e.tagName==="LABEL"&&e.htmlFor?e.childNodes[e.childNodes.length-1].nodeValue=" "+t[a]:e.innerHTML=t[a])}),document.getElementById("lang-toggle").textContent="ru"===e?"EN":"RU"}const UI={bgColor:document.getElementById("bg-color"),definitionBgColor:document.getElementById("definition-bg-color"),btnCheckBgColor:document.getElementById("btn-check-bg-color"),btnCheckTextColor:document.getElementById("btn-check-text-color"),btnRestartBgColor:document.getElementById("btn-restart-bg-color"),btnRestartTextColor:document.getElementById("btn-restart-text-color"),btnRadius:document.getElementById("btn-radius"),btnRadiusValue:document.getElementById("btn-radius-value"),gameTitle:document.getElementById("game-title"),gameType:document.getElementById("game-type"),gameData:document.getElementById("game-data"),feedbackCorrect:document.getElementById("feedback-correct"),feedbackIncorrect:document.getElementById("feedback-incorrect"),feedbackFinal:document.getElementById("feedback-final"),generateBtn:document.getElementById("generate-btn"),langToggle:document.getElementById("lang-toggle"),outputCode:document.getElementById("output-code"),outputIframe:document.getElementById("output-iframe"),previewFrame:document.getElementById("preview-container"),copyIframeBtn:document.getElementById("copy-iframe-btn"),copyHtmlBtn:document.getElementById("copy-html-btn"),downloadHtmlBtn:document.getElementById("download-html-btn")};function generateGame(){const e=UI.gameData.value.trim().split("\n").map(e=>{const t=e.split("|");return t.length<2||!t[0].trim()||!t[1].trim()?null:{definition:t[0].trim(),answer:t[1].trim(),imageUrl:t.length>2?t[2].trim():""}}).filter(Boolean),t="anagram"===UI.gameType.value?generateAnagramGame(e):generateInputGame(e);UI.outputCode.value=t,UI.outputIframe.value=`<iframe srcdoc="${t.replace(/"/g,"&quot;")}" width="100%" height="720" style="border:none;" title="Game"></iframe>`,UI.previewFrame.srcdoc=t}function generateAnagramGame(e){return`<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Игра</title><style>body{font-family:sans-serif;background-color:${UI.bgColor.value};margin:0;padding:20px;color:#333;display:flex;justify-content:center;align-items:center;min-height:100vh;box-sizing:border-box}.container{background:white;max-width:600px;width:90%;padding:20px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.1);text-align:center;box-sizing:border-box}h1{margin:0 0 15px}.progress-container{position:relative;height:25px;border-radius:10px;background-color:#e0e0e0;margin-bottom:20px}.progress-bar{height:100%;background-color:${UI.btnCheckBgColor.value};border-radius:inherit;width:0;transition:width 0.5s}.progress-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:white;font-weight:700;text-shadow:1px 1px 2px rgba(0,0,0,0.5)}#game-image{max-width:100%;max-height:150px;border-radius:8px;margin-bottom:20px;object-fit:contain;height:auto;display:block;margin-left:auto;margin-right:auto}.definition{font-size:1.2em;margin-bottom:20px;background-color:${UI.definitionBgColor.value};padding:10px;border-radius:8px;min-height:50px}#feedback{margin-top:20px;font-size:1.1em;font-weight:700;min-height:1.5em;color:#28a745}#feedback.error{color:#dc3545}.button{border:none;border-radius:${UI.btnRadius.value}px;cursor:pointer;font-weight:bold;padding:12px 24px;margin:5px;user-select:none;transition:background-color 0.3s}#check-btn{background-color:${UI.btnCheckBgColor.value};color:${UI.btnCheckTextColor.value}}#check-btn:hover{filter:brightness(0.9)}#clear-btn{background-color:${UI.btnRestartBgColor.value};color:${UI.btnRestartTextColor.value}}#clear-btn:hover{filter:brightness(0.9)}.answer-display{background:#eee;border-radius:8px;padding:15px;min-height:50px;margin:20px 0;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px;border:2px dashed #ccc}.letter-pool{margin:20px 0;display:flex;flex-wrap:wrap;justify-content:center;gap:10px}.letter-btn{font-size:1.5em;width:50px;height:50px;border:none;border-radius:${UI.btnRadius.value}px;background-color:${UI.btnCheckBgColor.value};color:${UI.btnCheckTextColor.value};cursor:pointer;transition:all 0.2s;font-weight:600;user-select:none}.letter-btn:hover{filter:brightness(0.85);transform:scale(1.1)}.letter-btn.placed{background-color:#6c757d;cursor:default}.letter-btn.error{background-color:#dc3545!important;animation:shake 0.5s}@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}.controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}</style></head><body><div class="container"><h1>${UI.gameTitle.value}</h1><div class="progress-container"><div class="progress-bar"></div><div class="progress-text">0/${e.length}</div></div><img id="game-image" src="" alt=""><p class="definition"></p><div class="answer-display"></div><div class="letter-pool"></div><div class="controls"><button id="check-btn" class="button">Проверить</button><button id="clear-btn" class="button">Сброс</button></div><p id="feedback"></p></div><script>let idx=0;const data=${JSON.stringify(e)};const UI={pb:document.querySelector(".progress-bar"),pt:document.querySelector(".progress-text"),img:document.getElementById("game-image"),def:document.querySelector(".definition"),ans:document.querySelector(".answer-display"),pool:document.querySelector(".letter-pool"),fb:document.getElementById("feedback"),chk:document.getElementById("check-btn"),clr:document.getElementById("clear-btn")};function load(){UI.pb.style.width=idx/data.length*100+"%",UI.pt.textContent=idx+"/"+data.length,UI.fb.textContent="",UI.fb.classList.remove("error"),UI.ans.innerHTML="",UI.pool.innerHTML="";if(idx>=data.length)return UI.def.textContent='${UI.feedbackFinal.value}',UI.img.style.display="none",UI.chk.disabled=!0,void(UI.clr.disabled=!0);const e=data[idx];UI.def.textContent=e.definition,UI.img.src=e.imageUrl,UI.img.style.display=e.imageUrl?"block":"none";[...e.answer.toUpperCase().replace(/\\s/g,"")].sort(()=>.5-Math.random()).forEach(e=>{const t=document.createElement("button");t.className="button letter-btn",t.textContent=e,t.onclick=()=>{if(!t.classList.contains("placed")){t.classList.add("placed");const e=document.createElement("button");e.textContent=t.textContent,e.className="button letter-btn",e.disabled=!0,UI.ans.appendChild(e)}},UI.pool.appendChild(t)})}UI.chk.onclick=()=>{const e=[...UI.ans.children].map(e=>e.textContent).join(""),t=data[idx].answer.toUpperCase().replace(/\\s/g,"");e===t?(UI.fb.textContent='${UI.feedbackCorrect.value}',UI.fb.classList.remove("error"),idx++,setTimeout(load,1500)):(UI.fb.textContent='${UI.feedbackIncorrect.value}',UI.fb.classList.add("error"))},UI.clr.onclick=()=>{UI.ans.innerHTML="",[...UI.pool.children].forEach(e=>e.classList.remove("placed")),UI.fb.textContent="",UI.fb.classList.remove("error")},load()<\/script></body></html>`}function generateInputGame(e){return`<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Игра</title><style>body{font-family:sans-serif;background-color:${UI.bgColor.value};margin:0;padding:20px;color:#333;display:flex;justify-content:center;align-items:center;min-height:100vh;box-sizing:border-box}.container{background:white;max-width:600px;width:90%;padding:20px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.1);text-align:center;box-sizing:border-box}h1{margin:0 0 15px}.progress-container{position:relative;height:25px;border-radius:10px;background-color:#e0e0e0;margin-bottom:20px}.progress-bar{height:100%;background-color:${UI.btnCheckBgColor.value};border-radius:inherit;width:0;transition:width 0.5s}.progress-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:white;font-weight:700;text-shadow:1px 1px 2px rgba(0,0,0,0.5)}#game-image{max-width:100%;max-height:150px;border-radius:8px;margin-bottom:20px;object-fit:contain;height:auto;display:block;margin-left:auto;margin-right:auto}.definition{font-size:1.2em;margin-bottom:20px;background-color:${UI.definitionBgColor.value};padding:10px;border-radius:8px;min-height:50px}#feedback{margin-top:20px;font-size:1.1em;font-weight:700;min-height:1.5em;color:#28a745}#feedback.error{color:#dc3545}.button{border:none;border-radius:${UI.btnRadius.value}px;cursor:pointer;font-weight:bold;padding:12px 24px;margin:5px;user-select:none;transition:background-color 0.3s}#check-btn{background-color:${UI.btnCheckBgColor.value};color:${UI.btnCheckTextColor.value}}#check-btn:hover{filter:brightness(0.9)}#answer-input{width:60%;padding:10px;font-size:1.1em;text-align:center;border:2px solid #ccc;border-radius:${UI.btnRadius.value}px}#answer-input:focus{border-color:${UI.btnCheckBgColor.value};outline:0}.controls{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap}</style></head><body><div class="container"><h1>${UI.gameTitle.value}</h1><div class="progress-container"><div class="progress-bar"></div><div class="progress-text">0/${e.length}</div></div><img id="game-image" src="" alt=""><p class="definition"></p><div class="controls"><input type="text" id="answer-input" placeholder="Введите ответ..."><button id="check-btn" class="button">Проверить</button></div><p id="feedback"></p></div><script>let idx=0;const data=${JSON.stringify(e)};const UI={pb:document.querySelector(".progress-bar"),pt:document.querySelector(".progress-text"),img:document.getElementById("game-image"),def:document.querySelector(".definition"),inp:document.getElementById("answer-input"),fb:document.getElementById("feedback"),chk:document.getElementById("check-btn"),ctrls:document.querySelector(".controls")};function load(){UI.pb.style.width=idx/data.length*100+"%",UI.pt.textContent=idx+"/"+data.length,UI.fb.textContent="",UI.fb.classList.remove("error");if(idx>=data.length)return UI.def.textContent='${UI.feedbackFinal.value}',UI.img.style.display="none",void(UI.ctrls.style.display="none");const e=data[idx];UI.def.textContent=e.definition,UI.img.src=e.imageUrl,UI.img.style.display=e.imageUrl?"block":"none",UI.inp.value="",UI.inp.focus()}function check(){const e=UI.inp.value.trim().toLowerCase(),t=data[idx].answer.trim().toLowerCase();e===t?(UI.fb.textContent='${UI.feedbackCorrect.value}',UI.fb.classList.remove("error"),idx++,setTimeout(load,1500)):(UI.fb.textContent='${UI.feedbackIncorrect.value}',UI.fb.classList.add("error"))}UI.chk.onclick=check,UI.inp.onkeydown=e=>"Enter"===e.key&&check(),load()<\/script></body></html>`}UI.btnRadius.addEventListener("input",e=>UI.btnRadiusValue.textContent=`${e.target.value}px`),UI.langToggle.addEventListener("click",()=>setLanguage("ru"===currentLang?"en":"ru")),UI.generateBtn.addEventListener("click",generateGame),UI.copyIframeBtn.addEventListener("click",()=>{navigator.clipboard.writeText(UI.outputIframe.value),alert("Код iframe скопирован!")}),UI.copyHtmlBtn.addEventListener("click",()=>{navigator.clipboard.writeText(UI.outputCode.value),alert("HTML-код скопирован!")}),UI.downloadHtmlBtn.addEventListener("click",()=>{const e=new Blob([UI.outputCode.value],{type:"text/html"}),t=URL.createObjectURL(e),a=document.createElement("a");a.href=t,a.download="game.html",document.body.appendChild(a),a.click(),document.body.removeChild(a),URL.revokeObjectURL(t)}),window.addEventListener("load",()=>{setLanguage("ru"),generateGame(),UI.btnRadiusValue.textContent=`${UI.btnRadius.value}px`});
+</script>
+</body>
+</html>
